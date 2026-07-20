@@ -15,37 +15,6 @@ import subprocess
 from datetime import datetime, timedelta
 
 
-# ============================================
-# ثوابت الألوان والتصميم المحسّنة
-# ============================================
-class StyleConstants:
-    # الألوان الأساسية
-    PRIMARY_COLOR = "#2196F3"  # أزرق
-    SUCCESS_COLOR = "#4CAF50"  # أخضر
-    WARNING_COLOR = "#FF9800"  # برتقالي
-    DANGER_COLOR = "#f44336"   # أحمر
-    INFO_COLOR = "#00BCD4"     # سماوي
-    PURPLE_COLOR = "#9C27B0"   # بنفسجي
-    GREY_COLOR = "#607D8B"     # رمادي مزرق
-    
-    # ألوان الخلفيات
-    BG_LIGHT = "#f5f5f5"
-    BG_WHITE = "#ffffff"
-    BG_BALANCE = "#e8f5e9"
-    BG_EXCHANGE = "#fff3e0"
-    BG_RECONCILE = "#fff9c4"
-    
-    # ألوان النصوص
-    TEXT_DARK = "#212121"
-    TEXT_LIGHT = "#757575"
-    TEXT_SUCCESS = "#1b5e20"
-    TEXT_WARNING = "#e65100"
-    
-    # الظلال والحدود
-    SHADOW_COLOR = "#bdbdbd"
-    BORDER_RADIUS = 3
-
-
 def get_windows_font():
     windows_font_path = "C:/Windows/Fonts/arial.ttf"
     if os.path.exists(windows_font_path):
@@ -97,27 +66,6 @@ def wrap_text(text, font_name, font_size, max_width, canvas_obj):
     if current_line:
         lines.append(current_line)
     return lines if lines else [""]
-
-
-def draw_centered_cell(canvas_obj, x_center, y_bottom, cell_width, cell_height, text_lines, font_name, font_size, bg_color, text_color, line_height):
-    """رسم خلية مع نص متوسّط أفقياً وعمودياً"""
-    # رسم الخلفية
-    canvas_obj.setFillColor(bg_color)
-    canvas_obj.rect(x_center - cell_width/2, y_bottom, cell_width, cell_height, fill=1, stroke=1)
-    
-    # حساب الارتفاع الكلي للنص
-    total_text_height = len(text_lines) * line_height
-    
-    # حساب نقطة البداية العمودية لتوسيط النص
-    y_start = y_bottom + (cell_height - total_text_height) / 2 + line_height
-    
-    canvas_obj.setFillColor(text_color)
-    canvas_obj.setFont(font_name, font_size)
-    
-    # رسم كل سطر متوسّط أفقياً
-    for i, line in enumerate(text_lines):
-        y_pos = y_start - (i * line_height)
-        canvas_obj.drawCentredString(x_center, y_pos - 2, reshape_text(line))
 
 
 def format_number(num):
@@ -221,321 +169,138 @@ class SarfApp:
         self.balance = self.load_balance()
         self.opening_balance = self.check_new_day()
 
-        # إعداد مظهر النافذة الرئيسية
-        self.root.configure(bg=StyleConstants.BG_LIGHT)
-        
-        # إنشاء إطار رئيسي مع تحسينات التصميم
-        main_frame = tk.Frame(self.root, padx=20, pady=15, bg=StyleConstants.BG_LIGHT)
+        main_frame = tk.Frame(self.root, padx=20, pady=10)
         main_frame.pack(fill=tk.BOTH, expand=True)
 
-        # عنوان رئيسي محسّن
-        title_label = tk.Label(
-            main_frame, 
-            text="📋 نظام إدارة سندات القبض والصرف والتصريف", 
-            font=("Arial", 18, "bold"),
-            bg=StyleConstants.BG_LIGHT,
-            fg=StyleConstants.TEXT_DARK
-        )
-        title_label.grid(row=0, column=0, columnspan=2, pady=(0, 15))
+        tk.Label(main_frame, text="إدخال بيانات سند القبض/الصرف/التصريف", font=("Arial", 16, "bold")).grid(row=0, column=0, columnspan=2, pady=5)
 
-        # إطار الرصيد المحسّن
-        balance_frame = tk.Frame(
-            main_frame, 
-            bg=StyleConstants.BG_BALANCE, 
-            padx=20, 
-            pady=15, 
-            relief=tk.RAISED, 
-            borderwidth=2
-        )
+        balance_frame = tk.Frame(main_frame, bg="#e8f5e9", padx=15, pady=10, relief=tk.RAISED, borderwidth=2)
         balance_frame.grid(row=1, column=0, columnspan=2, pady=10, sticky="ew")
 
-        tk.Label(
-            balance_frame, 
-            text="💰 رصيد الصندوق الحالي", 
-            font=("Arial", 15, "bold"), 
-            bg=StyleConstants.BG_BALANCE, 
-            fg=StyleConstants.TEXT_SUCCESS
-        ).grid(row=0, column=0, columnspan=6, pady=(0, 10))
+        tk.Label(balance_frame, text=" رصيد الصندوق", font=("Arial", 14, "bold"), bg="#e8f5e9", fg="#1b5e20").grid(row=0, column=0, columnspan=6, pady=5)
 
-        tk.Label(balance_frame, text="ليرة سورية:", font=("Arial", 11, "bold"), bg=StyleConstants.BG_BALANCE, fg=StyleConstants.TEXT_DARK).grid(row=1, column=0, sticky="e", padx=5)
+        tk.Label(balance_frame, text="ليرة سورية:", font=("Arial", 11, "bold"), bg="#e8f5e9").grid(row=1, column=0, sticky="e", padx=5)
         self.balance_syp_var = tk.StringVar(value=format_number(self.balance["ل.س"]))
-        tk.Label(balance_frame, textvariable=self.balance_syp_var, font=("Arial", 13, "bold"), bg=StyleConstants.BG_BALANCE, fg=StyleConstants.TEXT_SUCCESS, width=15, anchor="e").grid(row=1, column=1, padx=5)
+        tk.Label(balance_frame, textvariable=self.balance_syp_var, font=("Arial", 12, "bold"), bg="#e8f5e9", fg="#1b5e20", width=15, anchor="e").grid(row=1, column=1, padx=5)
 
-        tk.Label(balance_frame, text="دولار:", font=("Arial", 11, "bold"), bg=StyleConstants.BG_BALANCE, fg=StyleConstants.TEXT_DARK).grid(row=1, column=2, sticky="e", padx=5)
+        tk.Label(balance_frame, text="دولار:", font=("Arial", 11, "bold"), bg="#e8f5e9").grid(row=1, column=2, sticky="e", padx=5)
         self.balance_usd_var = tk.StringVar(value=format_number(self.balance["$"]))
-        tk.Label(balance_frame, textvariable=self.balance_usd_var, font=("Arial", 13, "bold"), bg=StyleConstants.BG_BALANCE, fg=StyleConstants.TEXT_SUCCESS, width=15, anchor="e").grid(row=1, column=3, padx=5)
+        tk.Label(balance_frame, textvariable=self.balance_usd_var, font=("Arial", 12, "bold"), bg="#e8f5e9", fg="#1b5e20", width=15, anchor="e").grid(row=1, column=3, padx=5)
 
-        tk.Label(balance_frame, text="يورو:", font=("Arial", 11, "bold"), bg=StyleConstants.BG_BALANCE, fg=StyleConstants.TEXT_DARK).grid(row=1, column=4, sticky="e", padx=5)
+        tk.Label(balance_frame, text="يورو:", font=("Arial", 11, "bold"), bg="#e8f5e9").grid(row=1, column=4, sticky="e", padx=5)
         self.balance_eur_var = tk.StringVar(value=format_number(self.balance["€"]))
-        tk.Label(balance_frame, textvariable=self.balance_eur_var, font=("Arial", 13, "bold"), bg=StyleConstants.BG_BALANCE, fg=StyleConstants.TEXT_SUCCESS, width=15, anchor="e").grid(row=1, column=5, padx=5)
+        tk.Label(balance_frame, textvariable=self.balance_eur_var, font=("Arial", 12, "bold"), bg="#e8f5e9", fg="#1b5e20", width=15, anchor="e").grid(row=1, column=5, padx=5)
 
-        tk.Button(
-            balance_frame, 
-            text="⚙️ ضبط الرصيد", 
-            command=self.manual_balance_adjust, 
-            bg=StyleConstants.WARNING_COLOR, 
-            fg="white", 
-            font=("Arial", 10, "bold"),
-            relief=tk.RAISED,
-            cursor="hand2"
-        ).grid(row=1, column=6, padx=10)
+        tk.Button(balance_frame, text="ضبط الرصيد", command=self.manual_balance_adjust, bg="#ff9800", fg="white", font=("Arial", 10)).grid(row=1, column=6, padx=10)
 
-        # قسم نوع السند المحسّن
-        type_label_frame = tk.LabelFrame(
-            main_frame,
-            text="📝 نوع السند",
-            font=("Arial", 12, "bold"),
-            bg=StyleConstants.BG_LIGHT,
-            fg=StyleConstants.TEXT_DARK,
-            padx=10,
-            pady=10
-        )
-        type_label_frame.grid(row=2, column=0, columnspan=2, pady=10, sticky="ew")
-        
+        tk.Label(main_frame, text="نوع السند:", font=("Arial", 12, "bold")).grid(row=2, column=1, sticky="e", pady=5)
         self.order_type_var = tk.StringVar(value="صرف")
-        type_frame = tk.Frame(type_label_frame, bg=StyleConstants.BG_LIGHT)
-        type_frame.pack()
+        type_frame = tk.Frame(main_frame)
+        type_frame.grid(row=2, column=0, pady=5, padx=10, sticky="e")
 
-        tk.Radiobutton(
-            type_frame, 
-            text="💸 سند صرف", 
-            variable=self.order_type_var, 
-            value="صرف", 
-            font=("Arial", 11),
-            bg=StyleConstants.BG_LIGHT,
-            activebackground=StyleConstants.BG_LIGHT,
-            command=self.on_type_change
-        ).pack(side=tk.RIGHT, padx=10)
-        
-        tk.Radiobutton(
-            type_frame, 
-            text="💵 سند قبض", 
-            variable=self.order_type_var, 
-            value="قبض", 
-            font=("Arial", 11),
-            bg=StyleConstants.BG_LIGHT,
-            activebackground=StyleConstants.BG_LIGHT,
-            command=self.on_type_change
-        ).pack(side=tk.RIGHT, padx=10)
-        
-        tk.Radiobutton(
-            type_frame, 
-            text="💱 تصريف", 
-            variable=self.order_type_var, 
-            value="تصريف", 
-            font=("Arial", 11),
-            bg=StyleConstants.BG_LIGHT,
-            activebackground=StyleConstants.BG_LIGHT,
-            command=self.on_type_change
-        ).pack(side=tk.RIGHT, padx=10)
-
-        # إطار إدخال البيانات المحسّن
-        data_frame = tk.LabelFrame(
-            main_frame,
-            text="📄 بيانات السند",
-            font=("Arial", 12, "bold"),
-            bg=StyleConstants.BG_LIGHT,
-            fg=StyleConstants.TEXT_DARK,
-            padx=15,
-            pady=15
-        )
-        data_frame.grid(row=3, column=0, columnspan=2, pady=10, sticky="ew")
+        tk.Radiobutton(type_frame, text="سند صرف", variable=self.order_type_var, value="صرف", font=("Arial", 12), command=self.on_type_change).pack(side=tk.RIGHT, padx=5)
+        tk.Radiobutton(type_frame, text="سند قبض", variable=self.order_type_var, value="قبض", font=("Arial", 12), command=self.on_type_change).pack(side=tk.RIGHT, padx=5)
+        tk.Radiobutton(type_frame, text="تصريف", variable=self.order_type_var, value="تصريف", font=("Arial", 12), command=self.on_type_change).pack(side=tk.RIGHT, padx=5)
 
         labels = [
-            ("🔢 الرقم التسلسلي:", "id"),
-            ("💰 المبلغ:", "amount"),
-            ("✍️ المبلغ كتابة:", "amount_words"),
-            ("👤 إلى أمين الصندوق:", "treasurer"),
-            ("🧑‍💼 إلى السيد:", "payee"),
-            ("📌 وذلك لقاء:", "reason")
+            ("الرقم التسلسلي:", "id"),
+            ("المبلغ:", "amount"),
+            ("المبلغ كتابة:", "amount_words"),
+            ("إلى أمين الصندوق:", "treasurer"),
+            ("إلى السيد:", "payee"),
+            ("وذلك لقاء:", "reason")
         ]
 
         self.entries = {}
         self.currency_var = tk.StringVar(value="ل.س")
 
         for i, (label_text, key) in enumerate(labels):
-            tk.Label(
-                data_frame, 
-                text=label_text, 
-                font=("Arial", 11),
-                bg=StyleConstants.BG_LIGHT,
-                fg=StyleConstants.TEXT_DARK
-            ).grid(row=i, column=1, sticky="e", pady=8, padx=5)
-            
+            tk.Label(main_frame, text=label_text, font=("Arial", 12)).grid(row=i+3, column=1, sticky="e", pady=5)
             if key == "amount":
-                amount_frame = tk.Frame(data_frame, bg=StyleConstants.BG_LIGHT)
-                amount_frame.grid(row=i, column=0, pady=8, padx=5, sticky="e")
-                
-                self.entries["amount"] = tk.Entry(
-                    amount_frame, 
-                    font=("Arial", 12), 
-                    width=20, 
-                    justify="right",
-                    bg=StyleConstants.BG_WHITE,
-                    relief=tk.SUNKEN
-                )
+                amount_frame = tk.Frame(main_frame)
+                amount_frame.grid(row=i+3, column=0, pady=5, padx=10, sticky="e")
+                self.entries["amount"] = tk.Entry(amount_frame, font=("Arial", 12), width=20, justify="right")
                 self.entries["amount"].pack(side=tk.RIGHT)
-                
-                currency_menu = tk.OptionMenu(
-                    amount_frame, 
-                    self.currency_var, 
-                    "ل.س", "$", "€"
-                )
-                currency_menu.config(
-                    font=("Arial", 11), 
-                    width=4,
-                    bg=StyleConstants.PRIMARY_COLOR,
-                    fg="white",
-                    activebackground=StyleConstants.PRIMARY_COLOR
-                )
+                currency_menu = tk.OptionMenu(amount_frame, self.currency_var, "ل.س", "$", "€")
+                currency_menu.config(font=("Arial", 12), width=4)
                 currency_menu.pack(side=tk.RIGHT, padx=5)
             else:
-                entry = tk.Entry(
-                    data_frame, 
-                    font=("Arial", 11), 
-                    width=35, 
-                    justify="right",
-                    bg=StyleConstants.BG_WHITE,
-                    relief=tk.SUNKEN
-                )
-                entry.grid(row=i, column=0, pady=8, padx=5, sticky="w")
+                entry = tk.Entry(main_frame, font=("Arial", 12), width=30, justify="right")
+                entry.grid(row=i+3, column=0, pady=5, padx=10)
                 self.entries[key] = entry
 
         self.entries["treasurer"].insert(0, "محمد الهواش")
 
-        # إطار الترصيد المحسّن
         self.reconcile_var = tk.BooleanVar(value=False)
-        reconcile_frame = tk.Frame(
-            main_frame, 
-            bg=StyleConstants.BG_RECONCILE, 
-            padx=15, 
-            pady=10,
-            relief=tk.RAISED,
-            borderwidth=1
-        )
-        reconcile_frame.grid(row=4, column=0, columnspan=2, pady=10, sticky="ew")
-        tk.Checkbutton(
-            reconcile_frame, 
-            text="✅ ترصيد (يؤثر على الصندوق - للتجميع في قائمة الترصيد للنقل الورقي)",
-            variable=self.reconcile_var, 
-            font=("Arial", 11, "bold"),
-            bg=StyleConstants.BG_RECONCILE, 
-            fg=StyleConstants.TEXT_WARNING,
-            selectcolor=StyleConstants.BG_RECONCILE,
-            activebackground=StyleConstants.BG_RECONCILE
-        ).pack(side=tk.RIGHT, padx=10)
+        reconcile_frame = tk.Frame(main_frame, bg="#fff9c4", padx=10, pady=5)
+        reconcile_frame.grid(row=9, column=0, columnspan=2, pady=5, sticky="ew")
+        tk.Checkbutton(reconcile_frame, text=" ترصيد (يؤثر على الصندوق - للتجميع في قائمة الترصيد للنقل الورقي)",
+                       variable=self.reconcile_var, font=("Arial", 11, "bold"),
+                       bg="#fff9c4", fg="#f57f17").pack(side=tk.RIGHT, padx=10)
 
-        # إطار التصريف المحسّن
-        self.exchange_frame = tk.LabelFrame(
-            main_frame,
-            text="💱 بيانات التصريف",
-            font=("Arial", 12, "bold"),
-            bg=StyleConstants.BG_EXCHANGE,
-            fg=StyleConstants.TEXT_WARNING,
-            padx=15,
-            pady=15
-        )
-        self.exchange_frame.grid(row=5, column=0, columnspan=2, pady=10, sticky="ew")
+        self.exchange_frame = tk.Frame(main_frame, bg="#f0f0f0", padx=10, pady=10)
+        self.exchange_frame.grid(row=10, column=0, columnspan=2, pady=10, sticky="ew")
         self.exchange_frame.grid_remove()
 
-        tk.Label(self.exchange_frame, text="🔄 نوع العملية:", font=("Arial", 11), bg=StyleConstants.BG_EXCHANGE, fg=StyleConstants.TEXT_DARK).grid(row=0, column=0, sticky="e", pady=5)
+        tk.Label(self.exchange_frame, text="بيانات التصريف", font=("Arial", 12, "bold"), bg="#f0f0f0").grid(row=0, column=0, columnspan=2, pady=5)
+
+        tk.Label(self.exchange_frame, text="نوع العملية:", font=("Arial", 11), bg="#f0f0f0").grid(row=1, column=0, sticky="e", pady=3)
         self.exchange_type_var = tk.StringVar(value="بيع")
-        ex_type_frame = tk.Frame(self.exchange_frame, bg=StyleConstants.BG_EXCHANGE)
-        ex_type_frame.grid(row=0, column=1, sticky="w")
+        ex_type_frame = tk.Frame(self.exchange_frame, bg="#f0f0f0")
+        ex_type_frame.grid(row=1, column=1, sticky="w")
 
-        tk.Radiobutton(ex_type_frame, text="💰 بيع (دولار/يورو → ليرة)", variable=self.exchange_type_var, value="بيع", font=("Arial", 10), bg=StyleConstants.BG_EXCHANGE, command=self.calculate_exchange).pack(side=tk.RIGHT, padx=8)
-        tk.Radiobutton(ex_type_frame, text="🛒 شراء (ليرة → دولار/يورو)", variable=self.exchange_type_var, value="شراء", font=("Arial", 10), bg=StyleConstants.BG_EXCHANGE, command=self.calculate_exchange).pack(side=tk.RIGHT, padx=8)
-        tk.Radiobutton(ex_type_frame, text="💶 يورو → 💵 دولار", variable=self.exchange_type_var, value="يورو_دولار", font=("Arial", 10), bg=StyleConstants.BG_EXCHANGE, command=self.calculate_exchange).pack(side=tk.RIGHT, padx=8)
-        tk.Radiobutton(ex_type_frame, text="💵 دولار → 💶 يورو", variable=self.exchange_type_var, value="دولار_يورو", font=("Arial", 10), bg=StyleConstants.BG_EXCHANGE, command=self.calculate_exchange).pack(side=tk.RIGHT, padx=8)
+        tk.Radiobutton(ex_type_frame, text="بيع (دولار/يورو → ليرة)", variable=self.exchange_type_var, value="بيع", font=("Arial", 10), bg="#f0f0f0", command=self.calculate_exchange).pack(side=tk.RIGHT, padx=5)
+        tk.Radiobutton(ex_type_frame, text="شراء (ليرة → دولار/يورو)", variable=self.exchange_type_var, value="شراء", font=("Arial", 10), bg="#f0f0f0", command=self.calculate_exchange).pack(side=tk.RIGHT, padx=5)
+        tk.Radiobutton(ex_type_frame, text="يورو → دولار", variable=self.exchange_type_var, value="يورو_دولار", font=("Arial", 10), bg="#f0f0f0", command=self.calculate_exchange).pack(side=tk.RIGHT, padx=5)
+        tk.Radiobutton(ex_type_frame, text="دولار → يورو", variable=self.exchange_type_var, value="دولار_يورو", font=("Arial", 10), bg="#f0f0f0", command=self.calculate_exchange).pack(side=tk.RIGHT, padx=5)
 
-        tk.Label(self.exchange_frame, text="📈 سعر الصرف:", font=("Arial", 11), bg=StyleConstants.BG_EXCHANGE, fg=StyleConstants.TEXT_DARK).grid(row=1, column=0, sticky="e", pady=5)
+        tk.Label(self.exchange_frame, text="سعر الصرف:", font=("Arial", 11), bg="#f0f0f0").grid(row=2, column=0, sticky="e", pady=3)
         self.exchange_rate_var = tk.StringVar()
-        tk.Entry(self.exchange_frame, font=("Arial", 12), width=15, textvariable=self.exchange_rate_var, justify="right", bg=StyleConstants.BG_WHITE).grid(row=1, column=1, sticky="w", pady=5)
+        tk.Entry(self.exchange_frame, font=("Arial", 12), width=15, textvariable=self.exchange_rate_var, justify="right").grid(row=2, column=1, sticky="w", pady=3)
         self.exchange_rate_var.trace_add("write", self.calculate_exchange)
 
-        tk.Label(self.exchange_frame, text="💸 المبلغ المراد تصريفه:", font=("Arial", 11), bg=StyleConstants.BG_EXCHANGE, fg=StyleConstants.TEXT_DARK).grid(row=2, column=0, sticky="e", pady=5)
+        tk.Label(self.exchange_frame, text="المبلغ المراد تصريفه:", font=("Arial", 11), bg="#f0f0f0").grid(row=3, column=0, sticky="e", pady=3)
         self.exchange_amount_var = tk.StringVar()
-        tk.Entry(self.exchange_frame, font=("Arial", 12), width=15, textvariable=self.exchange_amount_var, justify="right", bg=StyleConstants.BG_WHITE).grid(row=2, column=1, sticky="w", pady=5)
+        tk.Entry(self.exchange_frame, font=("Arial", 12), width=15, textvariable=self.exchange_amount_var, justify="right").grid(row=3, column=1, sticky="w", pady=3)
         self.exchange_amount_var.trace_add("write", self.calculate_exchange)
 
-        tk.Label(self.exchange_frame, text="💵 المبلغ الناتج:", font=("Arial", 11, "bold"), bg=StyleConstants.BG_EXCHANGE, fg=StyleConstants.TEXT_DARK).grid(row=3, column=0, sticky="e", pady=5)
+        tk.Label(self.exchange_frame, text="المبلغ الناتج:", font=("Arial", 11, "bold"), bg="#f0f0f0").grid(row=4, column=0, sticky="e", pady=3)
         self.exchange_result_var = tk.StringVar(value="0")
-        tk.Label(self.exchange_frame, textvariable=self.exchange_result_var, font=("Arial", 13, "bold"), bg=StyleConstants.BG_EXCHANGE, fg=StyleConstants.SUCCESS_COLOR, width=15, anchor="e").grid(row=3, column=1, sticky="w", pady=5)
+        tk.Label(self.exchange_frame, textvariable=self.exchange_result_var, font=("Arial", 12, "bold"), bg="#f0f0f0", fg="green", width=15, anchor="e").grid(row=4, column=1, sticky="w", pady=3)
 
-        # إطار تأثير التصريف المحسّن
-        self.exchange_impact_frame = tk.Frame(
-            main_frame, 
-            bg=StyleConstants.BG_EXCHANGE, 
-            padx=15, 
-            pady=10, 
-            relief=tk.RAISED, 
-            borderwidth=1
-        )
-        self.exchange_impact_frame.grid(row=6, column=0, columnspan=2, pady=5, sticky="ew")
+        self.exchange_impact_frame = tk.Frame(main_frame, bg="#fff3e0", padx=10, pady=10, relief=tk.RAISED, borderwidth=1)
+        self.exchange_impact_frame.grid(row=11, column=0, columnspan=2, pady=5, sticky="ew")
         self.exchange_impact_frame.grid_remove()
 
-        tk.Label(
-            self.exchange_impact_frame, 
-            text="📊 تأثير التصريف على الصناديق:", 
-            font=("Arial", 12, "bold"), 
-            bg=StyleConstants.BG_EXCHANGE, 
-            fg=StyleConstants.TEXT_WARNING
-        ).grid(row=0, column=0, columnspan=4, pady=5)
+        tk.Label(self.exchange_impact_frame, text="📊 تأثير التصريف على الصناديق:", font=("Arial", 11, "bold"), bg="#fff3e0", fg="#e65100").grid(row=0, column=0, columnspan=4, pady=3)
 
         self.impact_syp_var = tk.StringVar(value="ل.س: 0.00")
         self.impact_usd_var = tk.StringVar(value="$: 0.00")
         self.impact_eur_var = tk.StringVar(value="€: 0.00")
 
-        tk.Label(self.exchange_impact_frame, textvariable=self.impact_syp_var, font=("Arial", 11, "bold"), bg=StyleConstants.BG_EXCHANGE, fg=StyleConstants.TEXT_SUCCESS).grid(row=1, column=0, padx=10)
-        tk.Label(self.exchange_impact_frame, textvariable=self.impact_usd_var, font=("Arial", 11, "bold"), bg=StyleConstants.BG_EXCHANGE, fg=StyleConstants.TEXT_SUCCESS).grid(row=1, column=1, padx=10)
-        tk.Label(self.exchange_impact_frame, textvariable=self.impact_eur_var, font=("Arial", 11, "bold"), bg=StyleConstants.BG_EXCHANGE, fg=StyleConstants.TEXT_SUCCESS).grid(row=1, column=2, padx=10)
+        tk.Label(self.exchange_impact_frame, textvariable=self.impact_syp_var, font=("Arial", 11, "bold"), bg="#fff3e0", fg="#1b5e20").grid(row=1, column=0, padx=10)
+        tk.Label(self.exchange_impact_frame, textvariable=self.impact_usd_var, font=("Arial", 11, "bold"), bg="#fff3e0", fg="#1b5e20").grid(row=1, column=1, padx=10)
+        tk.Label(self.exchange_impact_frame, textvariable=self.impact_eur_var, font=("Arial", 11, "bold"), bg="#fff3e0", fg="#1b5e20").grid(row=1, column=2, padx=10)
 
         self.order_type_var.trace_add("write", self.on_order_type_change)
         self.update_id_display()
 
         self.root.after(1000, self.check_pending_reconciliation)
 
-        # إطار الأزرار المحسّن
-        btn_frame = tk.LabelFrame(
-            main_frame,
-            text="🛠️ العمليات",
-            font=("Arial", 13, "bold"),
-            bg=StyleConstants.BG_LIGHT,
-            fg=StyleConstants.TEXT_DARK,
-            padx=15,
-            pady=15
-        )
-        btn_frame.grid(row=7, column=0, columnspan=2, pady=20)
+        btn_frame = tk.Frame(main_frame)
+        btn_frame.grid(row=12, column=0, columnspan=2, pady=20)
 
-        # تعريف الأزرار مع أيقونات وألوان محسّنة
-        buttons_config = [
-            ("💾 حفظ كـ PDF", self.save_pdf, StyleConstants.SUCCESS_COLOR),
-            ("🖨️ حفظ وطباعة", self.save_and_print, StyleConstants.PRIMARY_COLOR),
-            ("✏️ تعديل سند", self.open_edit_window, "#FF5722"),
-            ("🗑️ حذف سندات", self.open_delete_window, StyleConstants.DANGER_COLOR),
-            ("✅ قائمة الترصيد", self.open_reconciliation_window, StyleConstants.PURPLE_COLOR),
-            ("📊 تقرير اليوم", self.generate_daily_report, StyleConstants.WARNING_COLOR),
-            ("⚖️ الموازنة", self.open_monthly_balance, StyleConstants.GREY_COLOR),
-            ("🔍 استعلام", self.open_query_window, StyleConstants.INFO_COLOR),
-            ("⚙️ الإعدادات", self.open_settings_window, "#9E9E9E"),
-            ("📥 استرجاع نسخة", self.restore_backup, "#795548"),
-            ("🔄 تصفير العداد", self.reset_id, "#f44336")
-        ]
-
-        for btn_text, btn_command, btn_bg in buttons_config:
-            tk.Button(
-                btn_frame, 
-                text=btn_text, 
-                command=btn_command, 
-                bg=btn_bg, 
-                fg="white", 
-                font=("Arial", 11, "bold"),
-                width=13,
-                relief=tk.RAISED,
-                cursor="hand2",
-                activebackground=btn_bg,
-                activeforeground="white"
-            ).pack(side=tk.LEFT, padx=5, pady=5)
+        tk.Button(btn_frame, text="حفظ كـ PDF", command=self.save_pdf, bg="#4CAF50", fg="white", font=("Arial", 12, "bold"), width=12).pack(side=tk.LEFT, padx=5)
+        tk.Button(btn_frame, text="حفظ وطباعة", command=self.save_and_print, bg="#2196F3", fg="white", font=("Arial", 12, "bold"), width=12).pack(side=tk.LEFT, padx=5)
+        tk.Button(btn_frame, text="تعديل سند", command=self.open_edit_window, bg="#FF5722", fg="white", font=("Arial", 12, "bold"), width=12).pack(side=tk.LEFT, padx=5)
+        tk.Button(btn_frame, text="حذف سندات", command=self.open_delete_window, bg="#E91E63", fg="white", font=("Arial", 12, "bold"), width=12).pack(side=tk.LEFT, padx=5)
+        tk.Button(btn_frame, text="قائمة الترصيد", command=self.open_reconciliation_window, bg="#9C27B0", fg="white", font=("Arial", 12, "bold"), width=12).pack(side=tk.LEFT, padx=5)
+        tk.Button(btn_frame, text="تقرير اليوم", command=self.generate_daily_report, bg="#FF9800", fg="white", font=("Arial", 12, "bold"), width=12).pack(side=tk.LEFT, padx=5)
+        tk.Button(btn_frame, text="الموازنة", command=self.open_monthly_balance, bg="#607D8B", fg="white", font=("Arial", 12, "bold"), width=12).pack(side=tk.LEFT, padx=5)
+        tk.Button(btn_frame, text="استعلام", command=self.open_query_window, bg="#00BCD4", fg="white", font=("Arial", 12, "bold"), width=12).pack(side=tk.LEFT, padx=5)
+        tk.Button(btn_frame, text="الإعدادات", command=self.open_settings_window, bg="#9E9E9E", fg="white", font=("Arial", 12, "bold"), width=12).pack(side=tk.LEFT, padx=5)
+        tk.Button(btn_frame, text="استرجاع نسخة", command=self.restore_backup, bg="#795548", fg="white", font=("Arial", 12, "bold"), width=12).pack(side=tk.LEFT, padx=5)
+        tk.Button(btn_frame, text="تصفير العداد", command=self.reset_id, bg="#f44336", fg="white", font=("Arial", 10)).pack(side=tk.LEFT, padx=5)
 
     def load_settings(self):
         if os.path.exists(self.settings_file):
@@ -2319,7 +2084,13 @@ class SarfApp:
 
                 x = width - margins["right"]
                 for lines, w in zip(wrapped_cells, col_widths):
-                    draw_centered_cell(c, x - w/2, y - cell_height + 5, w, cell_height, lines, font_name, body_size, row_color, text_color, line_height)
+                    c.setFillColor(row_color)
+                    c.rect(x - w, y - cell_height + 5, w, cell_height, fill=1, stroke=1)
+                    c.setFillColor(text_color)
+
+                    for i, line in enumerate(lines):
+                        line_y = y - (i * line_height)
+                        c.drawCentredString(x - w/2, line_y - 2, reshape_text(line))
                     x -= w
 
                 y -= cell_height + 2
@@ -2793,7 +2564,13 @@ class SarfApp:
 
                 x = width - margins["right"]
                 for lines, w in zip(wrapped_cells, col_widths):
-                    draw_centered_cell(c, x - w/2, y - cell_height + 5, w, cell_height, lines, font_name, body_size, row_color, text_color, line_height)
+                    c.setFillColor(row_color)
+                    c.rect(x - w, y - cell_height + 5, w, cell_height, fill=1, stroke=1)
+                    c.setFillColor(text_color)
+
+                    for i, line in enumerate(lines):
+                        line_y = y - (i * line_height)
+                        c.drawCentredString(x - w/2, line_y - 2, reshape_text(line))
                     x -= w
 
                 y -= cell_height + 2
