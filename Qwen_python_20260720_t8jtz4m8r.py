@@ -108,8 +108,8 @@ def draw_centered_cell(canvas_obj, x_center, y_bottom, cell_width, cell_height, 
     # حساب الارتفاع الكلي للنص
     total_text_height = len(text_lines) * line_height
     
-    # حساب نقطة البداية العمودية لتوسيط النص
-    y_start = y_bottom + (cell_height - total_text_height) / 2 + line_height
+    # حساب نقطة البداية العمودية لتوسيط النص بشكل دقيق
+    y_start = y_bottom + (cell_height - total_text_height) / 2 + line_height * 0.8
     
     canvas_obj.setFillColor(text_color)
     canvas_obj.setFont(font_name, font_size)
@@ -117,7 +117,7 @@ def draw_centered_cell(canvas_obj, x_center, y_bottom, cell_width, cell_height, 
     # رسم كل سطر متوسّط أفقياً
     for i, line in enumerate(text_lines):
         y_pos = y_start - (i * line_height)
-        canvas_obj.drawCentredString(x_center, y_pos - 2, reshape_text(line))
+        canvas_obj.drawCentredString(x_center, y_pos, reshape_text(line))
 
 
 def format_number(num):
@@ -2319,7 +2319,7 @@ class SarfApp:
 
                 x = width - margins["right"]
                 for lines, w in zip(wrapped_cells, col_widths):
-                    draw_centered_cell(c, x - w/2, y - cell_height + 5, w, cell_height, lines, font_name, body_size, row_color, text_color, line_height)
+                    draw_centered_cell(c, x - w/2, y - cell_height, w, cell_height, lines, font_name, body_size, row_color, text_color, line_height)
                     x -= w
 
                 y -= cell_height + 2
@@ -2793,7 +2793,7 @@ class SarfApp:
 
                 x = width - margins["right"]
                 for lines, w in zip(wrapped_cells, col_widths):
-                    draw_centered_cell(c, x - w/2, y - cell_height + 5, w, cell_height, lines, font_name, body_size, row_color, text_color, line_height)
+                    draw_centered_cell(c, x - w/2, y - cell_height, w, cell_height, lines, font_name, body_size, row_color, text_color, line_height)
                     x -= w
 
                 y -= cell_height + 2
