@@ -99,7 +99,7 @@ def wrap_text(text, font_name, font_size, max_width, canvas_obj):
     return lines if lines else [""]
 
 
-def draw_centered_cell(canvas_obj, x_center, y_bottom, cell_width, cell_height, text_lines, font_name, font_size, bg_color, text_color, line_height, align="center"):
+def draw_centered_cell(canvas_obj, x_center, y_bottom, cell_width, cell_height, text_lines, font_name, font_size, bg_color, text_color, line_height, align="center", vertical_padding=3):
     """رسم خلية مع نص متوسّط أفقياً وعمودياً"""
     # رسم الخلفية
     canvas_obj.setFillColor(bg_color)
@@ -108,8 +108,9 @@ def draw_centered_cell(canvas_obj, x_center, y_bottom, cell_width, cell_height, 
     # حساب الارتفاع الكلي للنص
     total_text_height = len(text_lines) * line_height
     
-    # حساب نقطة البداية العمودية لتوسيط النص بشكل دقيق
-    y_start = y_bottom + (cell_height - total_text_height) / 2 + line_height * 0.8
+    # حساب المساحة الفارغة وتوزيعها بالتساوي فوق وتحت النص
+    available_space = cell_height - (vertical_padding * 2)
+    y_start = y_bottom + vertical_padding + total_text_height
     
     canvas_obj.setFillColor(text_color)
     canvas_obj.setFont(font_name, font_size)
@@ -2395,8 +2396,9 @@ class SarfApp:
                     c.setFont(font_name, body_size)
 
                 x = width - margins["right"]
+                vertical_padding = self.settings["table"].get("vertical_padding", 3)
                 for lines, w in zip(wrapped_cells, col_widths):
-                    draw_centered_cell(c, x - w/2, y - cell_height, w, cell_height, lines, font_name, body_size, row_color, text_color, line_height, text_align)
+                    draw_centered_cell(c, x - w/2, y - cell_height, w, cell_height, lines, font_name, body_size, row_color, text_color, line_height, text_align, vertical_padding)
                     x -= w
 
                 y -= cell_height + 2
@@ -2879,8 +2881,8 @@ class SarfApp:
                     c.setFont(font_name, body_size)
 
                 x = width - margins["right"]
-                for lines, w in zip(wrapped_cells, col_widths):
-                    draw_centered_cell(c, x - w/2, y - cell_height, w, cell_height, lines, font_name, body_size, row_color, text_color, line_height, text_align)
+                vertical_padding = self.settings["table"].get("vertical_padding", 3)
+                    draw_centered_cell(c, x - w/2, y - cell_height, w, cell_height, lines, font_name, body_size, row_color, text_color, line_height, text_align, vertical_padding)
                     x -= w
 
                 y -= cell_height + 2
