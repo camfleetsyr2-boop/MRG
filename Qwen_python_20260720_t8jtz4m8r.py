@@ -9,6 +9,8 @@ from reportlab.lib.pagesizes import A6, A4
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.lib import colors
+from reportlab.platypus import LongTable, TableStyle
+from reportlab.lib.colors import HexColor, white, black
 import arabic_reshaper
 from bidi.algorithm import get_display
 import subprocess
@@ -2733,6 +2735,8 @@ class SarfApp:
             row_height = self.settings["table"]["row_height"]
             text_align = self.settings["daily_report"].get("text_align", "center")
             header_align = self.settings["daily_report"].get("header_align", "center")
+            line_spacing = self.settings["table"].get("line_spacing", 1.2)
+            vertical_padding = self.settings["table"].get("vertical_padding", 3)
 
             header_bg = hex_to_reportlab_color(self.settings["colors"]["table_header_bg"])
             header_text = hex_to_reportlab_color(self.settings["colors"]["table_header_text"])
@@ -2746,85 +2750,73 @@ class SarfApp:
             reconciled_text = hex_to_reportlab_color(self.settings["colors"]["row_reconciled_text"])
             balance_bg = hex_to_reportlab_color(self.settings["colors"]["balance_box_bg"])
 
+            # تحويل المحاذاة النصية إلى قيم ReportLab
+            align_map = {'center': 'CENTER', 'right': 'RIGHT', 'left': 'LEFT'}
+            ta = align_map.get(text_align, 'CENTER')
+            ha = align_map.get(header_align, 'CENTER')
+
             c.setFont(font_name, title_size)
+            c.setFillColor(colors.black)
             c.drawCentredString(width/2, height - margins["top"], reshape_text(f"تقرير يوم {today}"))
 
             c.setFont(font_name, header_size)
             c.drawString(margins["left"], height - margins["top"] - 30, reshape_text(f"إجمالي السندات: {len(today_records)}"))
 
-            y = height - margins["top"] - 60
+            y_start = height - margins["top"] - 80
 
+            # رسم صناديق الافتتاحية والختامية والحركة
             c.setFont(font_name, 14)
             c.setFillColor(colors.Color(0.1, 0.4, 0.1))
-            c.drawCentredString(width/2, y, reshape_text(" حركة الصندوق"))
+            c.drawCentredString(width/2, y_start, reshape_text("حركة الصندوق"))
             c.setFillColor(colors.black)
-            y -= 30
+            y_pos = y_start - 25
 
             c.setFont(font_name, header_size)
             opening = self.opening_balance
 
+            # افتتاحية الصندوق
             c.setFillColor(balance_bg)
-            c.rect(margins["left"], y - 5, width - margins["left"] - margins["right"], 25, fill=1, stroke=1)
+            c.rect(margins["left"], y_pos - 5, width - margins["left"] - margins["right"], 25, fill=1, stroke=1)
             c.setFillColor(colors.black)
-            c.drawString(margins["left"] + 10, y, reshape_text("افتتاحية الصندوق:"))
-            c.drawString(200, y, f"ل.س: {format_number(opening.get('ل.س', 0))}")
-            c.drawString(380, y, f"$: {format_number(opening.get('$', 0))}")
-            c.drawString(520, y, f"€: {format_number(opening.get('€', 0))}")
-            y -= 35
+            c.drawString(margins["left"] + 10, y_pos, reshape_text("افتتاحية الصندوق:"))
+            c.drawString(200, y_pos, f"ل.س: {format_number(opening.get('ل.س', 0))}")
+            c.drawString(380, y_pos, f"$: {format_number(opening.get('$', 0))}")
+            c.drawString(520, y_pos, f"€: {format_number(opening.get('€', 0))}")
+            y_pos -= 35
 
+            # ختامية الصندوق
             c.setFillColor(balance_bg)
-            c.rect(margins["left"], y - 5, width - margins["left"] - margins["right"], 25, fill=1, stroke=1)
+            c.rect(margins["left"], y_pos - 5, width - margins["left"] - margins["right"], 25, fill=1, stroke=1)
             c.setFillColor(colors.black)
-            c.drawString(margins["left"] + 10, y, reshape_text("ختامية الصندوق:"))
-            c.drawString(200, y, f"ل.س: {format_number(self.balance['ل.س'])}")
-            c.drawString(380, y, f"$: {format_number(self.balance['$'])}")
-            c.drawString(520, y, f"€: {format_number(self.balance['€'])}")
-            y -= 35
+            c.drawString(margins["left"] + 10, y_pos, reshape_text("ختامية الصندوق:"))
+            c.drawString(200, y_pos, f"ل.س: {format_number(self.balance['ل.س'])}")
+            c.drawString(380, y_pos, f"$: {format_number(self.balance['$'])}")
+            c.drawString(520, y_pos, f"€: {format_number(self.balance['€'])}")
+            y_pos -= 35
 
+            # صافي الحركة
             c.setFillColor(colors.Color(0.95, 0.9, 0.8))
-            c.rect(margins["left"], y - 5, width - margins["left"] - margins["right"], 25, fill=1, stroke=1)
+            c.rect(margins["left"], y_pos - 5, width - margins["left"] - margins["right"], 25, fill=1, stroke=1)
             c.setFillColor(colors.black)
-            c.drawString(margins["left"] + 10, y, reshape_text("صافي الحركة:"))
+            c.drawString(margins["left"] + 10, y_pos, reshape_text("صافي الحركة:"))
             syp_diff = self.balance["ل.س"] - opening.get("ل.س", 0)
             usd_diff = self.balance["$"] - opening.get("$", 0)
             eur_diff = self.balance["€"] - opening.get("€", 0)
-            c.drawString(200, y, f"ل.س: {format_number(syp_diff)}")
-            c.drawString(380, y, f"$: {format_number(usd_diff)}")
-            c.drawString(520, y, f"€: {format_number(eur_diff)}")
-            y -= 45
+            c.drawString(200, y_pos, f"ل.س: {format_number(syp_diff)}")
+            c.drawString(380, y_pos, f"$: {format_number(usd_diff)}")
+            c.drawString(520, y_pos, f"€: {format_number(eur_diff)}")
+            y_pos -= 50
 
+            # عنوان تفاصيل السندات
             c.setFont(font_name, 14)
             c.setFillColor(colors.Color(0.1, 0.4, 0.1))
-            c.drawCentredString(width/2, y, reshape_text("📋 تفاصيل السندات"))
+            c.drawCentredString(width/2, y_pos, reshape_text("📋 تفاصيل السندات"))
             c.setFillColor(colors.black)
-            y -= 30
+            y_table_start = y_pos - 30
 
+            # تحضير بيانات الجدول
             headers = ["الحالة", "النوع", "الرقم", "المبلغ", "المستلم", "السبب"]
-
-            def draw_header(yy):
-                c.setFillColor(header_bg)
-                x = width - margins["right"]
-                for header, w in zip(headers, col_widths):
-                    c.rect(x - w, yy - 5, w, 20, fill=1, stroke=1)
-                    c.setFillColor(header_text)
-                    if header_align == "right":
-                        text_width = c.stringWidth(reshape_text(header), font_name, body_size)
-                        x_pos = (x - w/2) + w/2 - text_width
-                        c.drawString(x_pos, yy, reshape_text(header))
-                    elif header_align == "left":
-                        x_pos = (x - w/2) - w/2 + 3
-                        c.drawString(x_pos, yy, reshape_text(header))
-                    else:
-                        c.drawCentredString(x - w/2, yy, reshape_text(header))
-                    x -= w
-                    c.setFillColor(header_bg)
-                c.setFillColor(colors.black)
-
-            draw_header(y)
-            y -= 30
-
-            c.setFont(font_name, body_size)
-            line_height = row_height
+            table_data = [headers]
 
             for rec in today_records:
                 is_deleted = rec.get("deleted", False)
@@ -2833,24 +2825,14 @@ class SarfApp:
                 is_reconciled = rec.get("reconciled", False)
 
                 if is_deleted:
-                    row_color = deleted_bg
-                    text_color = deleted_text
                     status_text = "محذوف"
                 elif is_edited:
-                    row_color = edited_bg
-                    text_color = edited_text
                     status_text = "معدل"
                 elif needs_recon and not is_reconciled:
-                    row_color = pending_bg
-                    text_color = pending_text
                     status_text = "بانتظار الترصيد"
                 elif needs_recon and is_reconciled:
-                    row_color = reconciled_bg
-                    text_color = reconciled_text
                     status_text = "تم الترصيد"
                 else:
-                    row_color = colors.white
-                    text_color = colors.black
                     status_text = "نشط"
 
                 row_data = [
@@ -2861,32 +2843,72 @@ class SarfApp:
                     rec.get("payee", ""),
                     rec.get("reason", "")
                 ]
+                table_data.append(row_data)
 
-                wrapped_cells = []
-                max_lines = 1
-                for val, w in zip(row_data, col_widths):
-                    lines = wrap_text(str(val), font_name, body_size, w, c)
-                    wrapped_cells.append(lines)
-                    max_lines = max(max_lines, len(lines))
+            # إنشاء الجدول باستخدام LongTable
+            t = LongTable(table_data, colWidths=col_widths)
 
-                cell_height = max_lines * line_height
+            # بناء التنسيقات ديناميكياً
+            style_commands = [
+                # الشبكة والحدود
+                ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+                ('BACKGROUND', (0, 0), (-1, 0), header_bg),
+                ('TEXTCOLOR', (0, 0), (-1, 0), header_text),
+                
+                # المحاذاة
+                ('ALIGN', (0, 0), (-1, 0), ha),
+                ('ALIGN', (0, 1), (-1, -1), ta),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                
+                # الخطوط
+                ('FONTNAME', (0, 0), (-1, 0), font_name),
+                ('FONTSIZE', (0, 0), (-1, 0), header_size),
+                ('FONTNAME', (0, 1), (-1, -1), font_name),
+                ('FONTSIZE', (0, 1), (-1, -1), body_size),
+                
+                # الحشو الداخلي
+                ('TOPPADDING', (0, 0), (-1, -1), vertical_padding),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), vertical_padding),
+                ('LEFTPADDING', (0, 0), (-1, -1), 5),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 5),
+                
+                # تباعد الأسطر
+                ('LEADING', (0, 0), (-1, -1), body_size * line_spacing),
+            ]
 
-                if y - cell_height < 50:
-                    c.showPage()
-                    y = height - margins["top"]
-                    c.setFillColor(colors.black)
-                    c.setFont(font_name, body_size)
-                    draw_header(y)
-                    y -= 30
-                    c.setFont(font_name, body_size)
+            # إضافة ألوان الصفوف بناءً على الحالة
+            for i, rec in enumerate(today_records):
+                row_idx = i + 1  # +1 لأن الصف 0 هو الرأس
+                is_deleted = rec.get("deleted", False)
+                is_edited = rec.get("edited", False)
+                needs_recon = rec.get("needs_reconciliation", False)
+                is_reconciled = rec.get("reconciled", False)
 
-                x = width - margins["right"]
-                vertical_padding = self.settings["table"].get("vertical_padding", 3)
-                for lines, w in zip(wrapped_cells, col_widths):
-                    draw_centered_cell(c, x - w/2, y - cell_height, w, cell_height, lines, font_name, body_size, row_color, text_color, line_height, text_align, vertical_padding)
-                    x -= w
+                if is_deleted:
+                    style_commands.append(('BACKGROUND', (0, row_idx), (-1, row_idx), deleted_bg))
+                    style_commands.append(('TEXTCOLOR', (0, row_idx), (-1, row_idx), deleted_text))
+                elif is_edited:
+                    style_commands.append(('BACKGROUND', (0, row_idx), (-1, row_idx), edited_bg))
+                    style_commands.append(('TEXTCOLOR', (0, row_idx), (-1, row_idx), edited_text))
+                elif needs_recon and not is_reconciled:
+                    style_commands.append(('BACKGROUND', (0, row_idx), (-1, row_idx), pending_bg))
+                    style_commands.append(('TEXTCOLOR', (0, row_idx), (-1, row_idx), pending_text))
+                elif needs_recon and is_reconciled:
+                    style_commands.append(('BACKGROUND', (0, row_idx), (-1, row_idx), reconciled_bg))
+                    style_commands.append(('TEXTCOLOR', (0, row_idx), (-1, row_idx), reconciled_text))
 
-                y -= cell_height + 2
+            t.setStyle(TableStyle(style_commands))
+
+            # حساب المساحة المتاحة ورسم الجدول
+            available_height = y_table_start - 50
+            t.wrapOn(c, width - margins["left"] - margins["right"], available_height)
+            
+            # التحقق مما إذا كان الجدول يحتاج لصفحات متعددة
+            table_height = t._height
+            current_y = y_table_start
+            
+            # رسم الجدول
+            t.drawOn(c, margins["left"], current_y - table_height)
 
             c.save()
 
