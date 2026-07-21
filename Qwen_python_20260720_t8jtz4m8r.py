@@ -9,7 +9,8 @@ from reportlab.lib.pagesizes import A6, A4
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.lib import colors
-from reportlab.platypus import LongTable, TableStyle
+from reportlab.platypus import LongTable, TableStyle, Paragraph
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.colors import HexColor, white, black
 import arabic_reshaper
 from bidi.algorithm import get_display
@@ -70,11 +71,36 @@ def reshape_text(text):
     if not text:
         return ""
     try:
-        reshaped_text = arabic_reshaper.reshape(text)
+        reshaped_text = arabic_reshaper.reshape(str(text))
         bidi_text = get_display(reshaped_text)
         return bidi_text
     except:
-        return text
+        return str(text)
+
+
+def make_arabic_paragraph(text, font_name, font_size, alignment='CENTER', line_height=1.2):
+    """إنشاء فقرة نصية عربية منسقة لدعم النصوص الطويلة"""
+    if not text:
+        return ""
+    
+    # تشكيل النص العربي
+    reshaped = reshape_text(text)
+    
+    # إنشاء نمط مخصص للفقرة
+    style = ParagraphStyle(
+        'ArabicParagraph',
+        fontName=font_name,
+        fontSize=font_size,
+        leading=font_size * line_height,
+        alignment=alignment,
+        rightIndent=2,
+        leftIndent=2,
+        allowWidowWords=1,
+        splitLongWords=True,
+        wordWrap='RTL'
+    )
+    
+    return Paragraph(reshaped, style)
 
 
 def wrap_text(text, font_name, font_size, max_width, canvas_obj):
@@ -2336,14 +2362,15 @@ class SarfApp:
                 else:
                     status_text = reshape_text("نشط")
 
+                # استخدام فقرات للنصوص الطويلة خاصة في عمود البيان
                 row_data = [
                     status_text,
                     reshape_text(rec.get("type", "")),
                     reshape_text(rec.get("id", "")),
                     reshape_text(rec.get("date", "")),
                     reshape_text(rec.get("amount", "") + " " + rec.get("currency", "")),
-                    reshape_text(rec.get("payee", "")),
-                    reshape_text(rec.get("reason", ""))
+                    make_arabic_paragraph(rec.get("payee", ""), font_name, body_size, ta, line_spacing),
+                    make_arabic_paragraph(rec.get("reason", ""), font_name, body_size, ta, line_spacing)
                 ]
                 table_data.append(row_data)
 
@@ -2847,13 +2874,14 @@ class SarfApp:
                 else:
                     status_text = reshape_text("نشط")
 
+                # استخدام فقرات للنصوص الطويلة خاصة في عمود السبب
                 row_data = [
                     status_text,
                     reshape_text(rec.get("type", "")),
                     reshape_text(rec.get("id", "")),
                     reshape_text(rec.get("amount", "") + " " + rec.get("currency", "")),
-                    reshape_text(rec.get("payee", "")),
-                    reshape_text(rec.get("reason", ""))
+                    make_arabic_paragraph(rec.get("payee", ""), font_name, body_size, ta, line_spacing),
+                    make_arabic_paragraph(rec.get("reason", ""), font_name, body_size, ta, line_spacing)
                 ]
                 table_data.append(row_data)
 
