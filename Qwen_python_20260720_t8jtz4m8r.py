@@ -2882,6 +2882,7 @@ class SarfApp:
 
                 x = width - margins["right"]
                 vertical_padding = self.settings["table"].get("vertical_padding", 3)
+                for lines, w in zip(wrapped_cells, col_widths):
                     draw_centered_cell(c, x - w/2, y - cell_height, w, cell_height, lines, font_name, body_size, row_color, text_color, line_height, text_align, vertical_padding)
                     x -= w
 
