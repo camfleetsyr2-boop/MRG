@@ -1,65 +1,39 @@
-```python
-# Compiled and binary files
-*.pyc
+```
+# Python
 __pycache__/
-
-# Dependencies
-.venv/
-venv/
-env/
-pip-log.txt
-pip-selfcheck.json
+*.pyc
+*.pyo
+*.pyd
 
 # Logs and temp files
 *.log
 *.tmp
-*.swp
-*.swo
 
-# Environment variables
+# Environment
 .env
 .env.local
-.env.*
+*.env.*
 
 # Editors
 .vscode/
 .idea/
-*.sublime-project
-*.sublime-workspace
-.DS_Store
-Thumbs.db
 
-# Coverage reports
+# Dependencies
+.venv/
+venv/
+node_modules/
+
+# Build artifacts
+dist/
+build/
+target/
+
+# Coverage
 .coverage
 coverage/
 htmlcov/
 
-# Build outputs
-build/
-dist/
-*.egg-info/
-target/
-.gradle/
-
-# Testing
-.pytest_cache/
-.mypy_cache/
-.nyc_output/
-coverage.xml
-
-# OS generated files
+# OS
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
 Thumbs.db
-Thumbs.db:encryptable
-```
-
-Wait, let me reconsider. The only change was a Python file modification, and there are no build artifacts, dependency directories, or temporary files in the change list. According to rule #6, I should output an empty .gitignore.
-
-```python
-
 ```

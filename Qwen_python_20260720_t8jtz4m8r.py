@@ -99,7 +99,7 @@ def wrap_text(text, font_name, font_size, max_width, canvas_obj):
     return lines if lines else [""]
 
 
-def draw_centered_cell(canvas_obj, x_center, y_bottom, cell_width, cell_height, text_lines, font_name, font_size, bg_color, text_color, line_height):
+def draw_centered_cell(canvas_obj, x_center, y_bottom, cell_width, cell_height, text_lines, font_name, font_size, bg_color, text_color, line_height, align="center"):
     """رسم خلية مع نص متوسّط أفقياً وعمودياً"""
     # رسم الخلفية
     canvas_obj.setFillColor(bg_color)
@@ -114,10 +114,22 @@ def draw_centered_cell(canvas_obj, x_center, y_bottom, cell_width, cell_height, 
     canvas_obj.setFillColor(text_color)
     canvas_obj.setFont(font_name, font_size)
     
-    # رسم كل سطر متوسّط أفقياً
+    # رسم كل سطر حسب المحاذاة المحددة
     for i, line in enumerate(text_lines):
         y_pos = y_start - (i * line_height)
-        canvas_obj.drawCentredString(x_center, y_pos, reshape_text(line))
+        reshaped_line = reshape_text(line)
+        if align == "right":
+            # محاذاة لليمين
+            text_width = canvas_obj.stringWidth(reshaped_line, font_name, font_size)
+            x_pos = (x_center - cell_width/2) + cell_width - text_width - 3
+            canvas_obj.drawString(x_pos, y_pos, reshaped_line)
+        elif align == "left":
+            # محاذاة لليسار
+            x_pos = (x_center - cell_width/2) + 3
+            canvas_obj.drawString(x_pos, y_pos, reshaped_line)
+        else:
+            # توسيط (الافتراضي)
+            canvas_obj.drawCentredString(x_center, y_pos, reshaped_line)
 
 
 def format_number(num):
@@ -190,7 +202,9 @@ class SarfApp:
             "table": {
                 "row_height": 25,
                 "cell_padding": 5,
-                "border_width": 1
+                "border_width": 1,
+                "line_spacing": 1.2,
+                "vertical_padding": 3
             },
             "margins": {
                 "top": 40,
@@ -200,11 +214,15 @@ class SarfApp:
             },
             "daily_report": {
                 "col_widths": [45, 60, 65, 90, 110, 125],
-                "show_time": True
+                "show_time": True,
+                "text_align": "center",
+                "header_align": "center"
             },
             "query_report": {
                 "col_widths": [45, 55, 60, 75, 90, 95, 75],
-                "show_time": True
+                "show_time": True,
+                "text_align": "center",
+                "header_align": "center"
             }
         }
 
@@ -658,6 +676,47 @@ class SarfApp:
         self.border_width_var = tk.IntVar(value=self.settings["table"].get("border_width", 1))
         tk.Spinbox(tables_grid, from_=0, to=5, textvariable=self.border_width_var, width=10, font=("Arial", 11)).grid(row=2, column=1, pady=5, padx=10)
 
+        tk.Label(tables_grid, text="تباعد الأسطر:", font=("Arial", 11)).grid(row=3, column=0, sticky="e", pady=5, padx=10)
+        self.line_spacing_var = tk.DoubleVar(value=self.settings["table"].get("line_spacing", 1.2))
+        tk.Spinbox(tables_grid, from_=1.0, to=2.0, increment=0.1, textvariable=self.line_spacing_var, width=10, font=("Arial", 11)).grid(row=3, column=1, pady=5, padx=10)
+
+        tk.Label(tables_grid, text="الحشو العمودي:", font=("Arial", 11)).grid(row=4, column=0, sticky="e", pady=5, padx=10)
+        self.vertical_padding_var = tk.IntVar(value=self.settings["table"].get("vertical_padding", 3))
+        tk.Spinbox(tables_grid, from_=0, to=10, textvariable=self.vertical_padding_var, width=10, font=("Arial", 11)).grid(row=4, column=1, pady=5, padx=10)
+
+        # إعدادات محاذاة النص للتقارير
+        tk.Label(tables_frame, text="محاذاة نص التقرير اليومي:", font=("Arial", 11)).pack(pady=(20, 5))
+        self.daily_align_var = tk.StringVar(value=self.settings["daily_report"].get("text_align", "center"))
+        align_frame_daily = tk.Frame(tables_frame)
+        align_frame_daily.pack(pady=5)
+        tk.Radiobutton(align_frame_daily, text="توسيط", variable=self.daily_align_var, value="center").pack(side=tk.RIGHT, padx=10)
+        tk.Radiobutton(align_frame_daily, text="يمين", variable=self.daily_align_var, value="right").pack(side=tk.RIGHT, padx=10)
+        tk.Radiobutton(align_frame_daily, text="يسار", variable=self.daily_align_var, value="left").pack(side=tk.RIGHT, padx=10)
+
+        tk.Label(tables_frame, text="محاذاة رأس جدول التقرير اليومي:", font=("Arial", 11)).pack(pady=(10, 5))
+        self.daily_header_align_var = tk.StringVar(value=self.settings["daily_report"].get("header_align", "center"))
+        header_align_frame_daily = tk.Frame(tables_frame)
+        header_align_frame_daily.pack(pady=5)
+        tk.Radiobutton(header_align_frame_daily, text="توسيط", variable=self.daily_header_align_var, value="center").pack(side=tk.RIGHT, padx=10)
+        tk.Radiobutton(header_align_frame_daily, text="يمين", variable=self.daily_header_align_var, value="right").pack(side=tk.RIGHT, padx=10)
+        tk.Radiobutton(header_align_frame_daily, text="يسار", variable=self.daily_header_align_var, value="left").pack(side=tk.RIGHT, padx=10)
+
+        tk.Label(tables_frame, text="محاذاة نص تقرير الاستعلام:", font=("Arial", 11)).pack(pady=(20, 5))
+        self.query_align_var = tk.StringVar(value=self.settings["query_report"].get("text_align", "center"))
+        align_frame_query = tk.Frame(tables_frame)
+        align_frame_query.pack(pady=5)
+        tk.Radiobutton(align_frame_query, text="توسيط", variable=self.query_align_var, value="center").pack(side=tk.RIGHT, padx=10)
+        tk.Radiobutton(align_frame_query, text="يمين", variable=self.query_align_var, value="right").pack(side=tk.RIGHT, padx=10)
+        tk.Radiobutton(align_frame_query, text="يسار", variable=self.query_align_var, value="left").pack(side=tk.RIGHT, padx=10)
+
+        tk.Label(tables_frame, text="محاذاة رأس جدول تقرير الاستعلام:", font=("Arial", 11)).pack(pady=(10, 5))
+        self.query_header_align_var = tk.StringVar(value=self.settings["query_report"].get("header_align", "center"))
+        header_align_frame_query = tk.Frame(tables_frame)
+        header_align_frame_query.pack(pady=5)
+        tk.Radiobutton(header_align_frame_query, text="توسيط", variable=self.query_header_align_var, value="center").pack(side=tk.RIGHT, padx=10)
+        tk.Radiobutton(header_align_frame_query, text="يمين", variable=self.query_header_align_var, value="right").pack(side=tk.RIGHT, padx=10)
+        tk.Radiobutton(header_align_frame_query, text="يسار", variable=self.query_header_align_var, value="left").pack(side=tk.RIGHT, padx=10)
+
         tk.Label(tables_frame, text="عرض أعمدة التقرير اليومي (مفصولة بفاصلة):", font=("Arial", 11)).pack(pady=(20, 5))
         self.daily_cols_var = tk.StringVar(value=",".join(map(str, self.settings["daily_report"]["col_widths"])))
         tk.Entry(tables_frame, textvariable=self.daily_cols_var, width=40, font=("Arial", 11)).pack(pady=5)
@@ -698,6 +757,14 @@ class SarfApp:
             self.settings["table"]["row_height"] = self.row_height_var.get()
             self.settings["table"]["cell_padding"] = self.cell_padding_var.get()
             self.settings["table"]["border_width"] = self.border_width_var.get()
+            self.settings["table"]["line_spacing"] = self.line_spacing_var.get()
+            self.settings["table"]["vertical_padding"] = self.vertical_padding_var.get()
+
+            # حفظ إعدادات المحاذاة للتقارير
+            self.settings["daily_report"]["text_align"] = self.daily_align_var.get()
+            self.settings["daily_report"]["header_align"] = self.daily_header_align_var.get()
+            self.settings["query_report"]["text_align"] = self.query_align_var.get()
+            self.settings["query_report"]["header_align"] = self.query_header_align_var.get()
 
             try:
                 self.settings["daily_report"]["col_widths"] = [int(x.strip()) for x in self.daily_cols_var.get().split(",")]
@@ -2209,6 +2276,8 @@ class SarfApp:
             margins = self.settings["margins"]
             col_widths = self.settings["query_report"]["col_widths"]
             row_height = self.settings["table"]["row_height"]
+            text_align = self.settings["query_report"].get("text_align", "center")
+            header_align = self.settings["query_report"].get("header_align", "center")
 
             header_bg = hex_to_reportlab_color(self.settings["colors"]["table_header_bg"])
             header_text = hex_to_reportlab_color(self.settings["colors"]["table_header_text"])
@@ -2251,7 +2320,15 @@ class SarfApp:
                 for header, w in zip(headers, col_widths):
                     c.rect(x - w, yy - 5, w, 20, fill=1, stroke=1)
                     c.setFillColor(header_text)
-                    c.drawCentredString(x - w/2, yy, reshape_text(header))
+                    if header_align == "right":
+                        text_width = c.stringWidth(reshape_text(header), font_name, body_size)
+                        x_pos = (x - w/2) + w/2 - text_width
+                        c.drawString(x_pos, yy, reshape_text(header))
+                    elif header_align == "left":
+                        x_pos = (x - w/2) - w/2 + 3
+                        c.drawString(x_pos, yy, reshape_text(header))
+                    else:
+                        c.drawCentredString(x - w/2, yy, reshape_text(header))
                     x -= w
                     c.setFillColor(header_bg)
                 c.setFillColor(colors.black)
@@ -2319,7 +2396,7 @@ class SarfApp:
 
                 x = width - margins["right"]
                 for lines, w in zip(wrapped_cells, col_widths):
-                    draw_centered_cell(c, x - w/2, y - cell_height, w, cell_height, lines, font_name, body_size, row_color, text_color, line_height)
+                    draw_centered_cell(c, x - w/2, y - cell_height, w, cell_height, lines, font_name, body_size, row_color, text_color, line_height, text_align)
                     x -= w
 
                 y -= cell_height + 2
@@ -2652,6 +2729,8 @@ class SarfApp:
             margins = self.settings["margins"]
             col_widths = self.settings["daily_report"]["col_widths"]
             row_height = self.settings["table"]["row_height"]
+            text_align = self.settings["daily_report"].get("text_align", "center")
+            header_align = self.settings["daily_report"].get("header_align", "center")
 
             header_bg = hex_to_reportlab_color(self.settings["colors"]["table_header_bg"])
             header_text = hex_to_reportlab_color(self.settings["colors"]["table_header_text"])
@@ -2726,7 +2805,15 @@ class SarfApp:
                 for header, w in zip(headers, col_widths):
                     c.rect(x - w, yy - 5, w, 20, fill=1, stroke=1)
                     c.setFillColor(header_text)
-                    c.drawCentredString(x - w/2, yy, reshape_text(header))
+                    if header_align == "right":
+                        text_width = c.stringWidth(reshape_text(header), font_name, body_size)
+                        x_pos = (x - w/2) + w/2 - text_width
+                        c.drawString(x_pos, yy, reshape_text(header))
+                    elif header_align == "left":
+                        x_pos = (x - w/2) - w/2 + 3
+                        c.drawString(x_pos, yy, reshape_text(header))
+                    else:
+                        c.drawCentredString(x - w/2, yy, reshape_text(header))
                     x -= w
                     c.setFillColor(header_bg)
                 c.setFillColor(colors.black)
@@ -2793,7 +2880,7 @@ class SarfApp:
 
                 x = width - margins["right"]
                 for lines, w in zip(wrapped_cells, col_widths):
-                    draw_centered_cell(c, x - w/2, y - cell_height, w, cell_height, lines, font_name, body_size, row_color, text_color, line_height)
+                    draw_centered_cell(c, x - w/2, y - cell_height, w, cell_height, lines, font_name, body_size, row_color, text_color, line_height, text_align)
                     x -= w
 
                 y -= cell_height + 2
