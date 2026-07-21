@@ -2315,32 +2315,9 @@ class SarfApp:
 
             y = height - margins["top"] - 120
 
+            # تحضير بيانات الجدول باستخدام LongTable
             headers = [reshape_text("الحالة"), reshape_text("النوع"), reshape_text("الرقم"), reshape_text("التاريخ"), reshape_text("المبلغ"), reshape_text("حامل السند"), reshape_text("البيان")]
-
-            def draw_header(yy):
-                c.setFillColor(header_bg)
-                x = width - margins["right"]
-                for header, w in zip(headers, col_widths):
-                    c.rect(x - w, yy - 5, w, 20, fill=1, stroke=1)
-                    c.setFillColor(header_text)
-                    if header_align == "right":
-                        text_width = c.stringWidth(reshape_text(header), font_name, body_size)
-                        x_pos = (x - w/2) + w/2 - text_width
-                        c.drawString(x_pos, yy, reshape_text(header))
-                    elif header_align == "left":
-                        x_pos = (x - w/2) - w/2 + 3
-                        c.drawString(x_pos, yy, reshape_text(header))
-                    else:
-                        c.drawCentredString(x - w/2, yy, reshape_text(header))
-                    x -= w
-                    c.setFillColor(header_bg)
-                c.setFillColor(colors.black)
-
-            draw_header(y)
-            y -= 30
-
-            c.setFont(font_name, body_size)
-            line_height = row_height
+            table_data = [headers]
 
             for rec in filtered_records:
                 is_deleted = rec.get("deleted", False)
@@ -2349,24 +2326,14 @@ class SarfApp:
                 is_reconciled = rec.get("reconciled", False)
 
                 if is_deleted:
-                    row_color = deleted_bg
-                    text_color = deleted_text
                     status_text = reshape_text("محذوف")
                 elif is_edited:
-                    row_color = edited_bg
-                    text_color = edited_text
                     status_text = reshape_text("معدل")
                 elif needs_recon and not is_reconciled:
-                    row_color = pending_bg
-                    text_color = pending_text
                     status_text = reshape_text("بانتظار الترصيد")
                 elif needs_recon and is_reconciled:
-                    row_color = reconciled_bg
-                    text_color = reconciled_text
                     status_text = reshape_text("تم الترصيد")
                 else:
-                    row_color = colors.white
-                    text_color = colors.black
                     status_text = reshape_text("نشط")
 
                 row_data = [
@@ -2378,32 +2345,77 @@ class SarfApp:
                     reshape_text(rec.get("payee", "")),
                     reshape_text(rec.get("reason", ""))
                 ]
+                table_data.append(row_data)
 
-                wrapped_cells = []
-                max_lines = 1
-                for val, w in zip(row_data, col_widths):
-                    lines = wrap_text(str(val), font_name, body_size, w, c)
-                    wrapped_cells.append(lines)
-                    max_lines = max(max_lines, len(lines))
+            # إنشاء الجدول باستخدام LongTable
+            t = LongTable(table_data, colWidths=col_widths)
 
-                cell_height = max_lines * line_height
+            # تحويل المحاذاة النصية إلى قيم ReportLab
+            align_map = {'center': 'CENTER', 'right': 'RIGHT', 'left': 'LEFT'}
+            ta = align_map.get(text_align, 'CENTER')
+            ha = align_map.get(header_align, 'CENTER')
 
-                if y - cell_height < 50:
-                    c.showPage()
-                    y = height - margins["top"]
-                    c.setFillColor(colors.black)
-                    c.setFont(font_name, body_size)
-                    draw_header(y)
-                    y -= 30
-                    c.setFont(font_name, body_size)
+            # بناء التنسيقات ديناميكياً
+            style_commands = [
+                # الشبكة والحدود
+                ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+                ('BACKGROUND', (0, 0), (-1, 0), header_bg),
+                ('TEXTCOLOR', (0, 0), (-1, 0), header_text),
+                
+                # المحاذاة
+                ('ALIGN', (0, 0), (-1, 0), ha),
+                ('ALIGN', (0, 1), (-1, -1), ta),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                
+                # الخطوط
+                ('FONTNAME', (0, 0), (-1, 0), font_name),
+                ('FONTSIZE', (0, 0), (-1, 0), body_size),
+                ('FONTNAME', (0, 1), (-1, -1), font_name),
+                ('FONTSIZE', (0, 1), (-1, -1), body_size),
+                
+                # الحشو الداخلي
+                ('TOPPADDING', (0, 0), (-1, -1), 5),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+                ('LEFTPADDING', (0, 0), (-1, -1), 5),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 5),
+                
+                # تباعد الأسطر
+                ('LEADING', (0, 0), (-1, -1), body_size * 1.2),
+            ]
 
-                x = width - margins["right"]
-                vertical_padding = self.settings["table"].get("vertical_padding", 3)
-                for lines, w in zip(wrapped_cells, col_widths):
-                    draw_centered_cell(c, x - w/2, y - cell_height, w, cell_height, lines, font_name, body_size, row_color, text_color, line_height, text_align, vertical_padding)
-                    x -= w
+            # إضافة ألوان الصفوف بناءً على الحالة
+            for i, rec in enumerate(filtered_records):
+                row_idx = i + 1  # +1 لأن الصف 0 هو الرأس
+                is_deleted = rec.get("deleted", False)
+                is_edited = rec.get("edited", False)
+                needs_recon = rec.get("needs_reconciliation", False)
+                is_reconciled = rec.get("reconciled", False)
 
-                y -= cell_height + 2
+                if is_deleted:
+                    style_commands.append(('BACKGROUND', (0, row_idx), (-1, row_idx), deleted_bg))
+                    style_commands.append(('TEXTCOLOR', (0, row_idx), (-1, row_idx), deleted_text))
+                elif is_edited:
+                    style_commands.append(('BACKGROUND', (0, row_idx), (-1, row_idx), edited_bg))
+                    style_commands.append(('TEXTCOLOR', (0, row_idx), (-1, row_idx), edited_text))
+                elif needs_recon and not is_reconciled:
+                    style_commands.append(('BACKGROUND', (0, row_idx), (-1, row_idx), pending_bg))
+                    style_commands.append(('TEXTCOLOR', (0, row_idx), (-1, row_idx), pending_text))
+                elif needs_recon and is_reconciled:
+                    style_commands.append(('BACKGROUND', (0, row_idx), (-1, row_idx), reconciled_bg))
+                    style_commands.append(('TEXTCOLOR', (0, row_idx), (-1, row_idx), reconciled_text))
+
+            t.setStyle(TableStyle(style_commands))
+
+            # حساب المساحة المتاحة ورسم الجدول
+            available_height = y - 50
+            t.wrapOn(c, width - margins["left"] - margins["right"], available_height)
+            
+            # التحقق مما إذا كان الجدول يحتاج لصفحات متعددة
+            table_height = t._height
+            current_y = y
+            
+            # رسم الجدول
+            t.drawOn(c, margins["left"], current_y - table_height)
 
             c.save()
 
