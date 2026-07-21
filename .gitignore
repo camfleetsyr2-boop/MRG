@@ -8,6 +8,7 @@ __pycache__/
 # Logs and temp files
 *.log
 *.tmp
+*.swp
 
 # Environment
 .env
@@ -27,17 +28,16 @@ node_modules/
 dist/
 build/
 target/
+*.o
+*.obj
+*.out
 
 # Coverage
 .coverage
 coverage/
 htmlcov/
 
-# Testing
+# Cache
 .mypy_cache/
 .pytest_cache/
-
-# System
-.DS_Store
-Thumbs.db
 ```

@@ -2341,6 +2341,11 @@ class SarfApp:
 
             y = height - margins["top"] - 120
 
+            # تحويل المحاذاة النصية إلى قيم ReportLab
+            align_map = {'center': 'CENTER', 'right': 'RIGHT', 'left': 'LEFT'}
+            ta = align_map.get(text_align, 'CENTER')
+            ha = align_map.get(header_align, 'CENTER')
+
             # تحضير بيانات الجدول باستخدام LongTable
             headers = [reshape_text("الحالة"), reshape_text("النوع"), reshape_text("الرقم"), reshape_text("التاريخ"), reshape_text("المبلغ"), reshape_text("حامل السند"), reshape_text("البيان")]
             table_data = [headers]
@@ -2376,11 +2381,6 @@ class SarfApp:
 
             # إنشاء الجدول باستخدام LongTable
             t = LongTable(table_data, colWidths=col_widths)
-
-            # تحويل المحاذاة النصية إلى قيم ReportLab
-            align_map = {'center': 'CENTER', 'right': 'RIGHT', 'left': 'LEFT'}
-            ta = align_map.get(text_align, 'CENTER')
-            ha = align_map.get(header_align, 'CENTER')
 
             # بناء التنسيقات ديناميكياً
             style_commands = [
