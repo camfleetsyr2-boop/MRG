@@ -2341,6 +2341,10 @@ class SarfApp:
 
             y = height - margins["top"] - 120
 
+            # جلب إعدادات الجدول
+            line_spacing = self.settings["table"].get("line_spacing", 1.2)
+            vertical_padding = self.settings["table"].get("vertical_padding", 3)
+
             # تحويل المحاذاة النصية إلى قيم ReportLab
             align_map = {'center': 'CENTER', 'right': 'RIGHT', 'left': 'LEFT'}
             ta = align_map.get(text_align, 'CENTER')
@@ -2401,13 +2405,13 @@ class SarfApp:
                 ('FONTSIZE', (0, 1), (-1, -1), body_size),
                 
                 # الحشو الداخلي
-                ('TOPPADDING', (0, 0), (-1, -1), 5),
-                ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+                ('TOPPADDING', (0, 0), (-1, -1), vertical_padding),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), vertical_padding),
                 ('LEFTPADDING', (0, 0), (-1, -1), 5),
                 ('RIGHTPADDING', (0, 0), (-1, -1), 5),
                 
                 # تباعد الأسطر
-                ('LEADING', (0, 0), (-1, -1), body_size * 1.2),
+                ('LEADING', (0, 0), (-1, -1), body_size * line_spacing),
             ]
 
             # إضافة ألوان الصفوف بناءً على الحالة
