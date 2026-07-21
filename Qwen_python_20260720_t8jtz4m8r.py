@@ -2315,7 +2315,7 @@ class SarfApp:
 
             y = height - margins["top"] - 120
 
-            headers = ["الحالة", "النوع", "الرقم", "التاريخ", "المبلغ", "حامل السند", "البيان"]
+            headers = [reshape_text("الحالة"), reshape_text("النوع"), reshape_text("الرقم"), reshape_text("التاريخ"), reshape_text("المبلغ"), reshape_text("حامل السند"), reshape_text("البيان")]
 
             def draw_header(yy):
                 c.setFillColor(header_bg)
@@ -2351,32 +2351,32 @@ class SarfApp:
                 if is_deleted:
                     row_color = deleted_bg
                     text_color = deleted_text
-                    status_text = "محذوف"
+                    status_text = reshape_text("محذوف")
                 elif is_edited:
                     row_color = edited_bg
                     text_color = edited_text
-                    status_text = "معدل"
+                    status_text = reshape_text("معدل")
                 elif needs_recon and not is_reconciled:
                     row_color = pending_bg
                     text_color = pending_text
-                    status_text = "بانتظار الترصيد"
+                    status_text = reshape_text("بانتظار الترصيد")
                 elif needs_recon and is_reconciled:
                     row_color = reconciled_bg
                     text_color = reconciled_text
-                    status_text = "تم الترصيد"
+                    status_text = reshape_text("تم الترصيد")
                 else:
                     row_color = colors.white
                     text_color = colors.black
-                    status_text = "نشط"
+                    status_text = reshape_text("نشط")
 
                 row_data = [
                     status_text,
-                    rec.get("type", ""),
-                    rec.get("id", ""),
-                    rec.get("date", ""),
-                    rec.get("amount", "") + " " + rec.get("currency", ""),
-                    rec.get("payee", ""),
-                    rec.get("reason", "")
+                    reshape_text(rec.get("type", "")),
+                    reshape_text(rec.get("id", "")),
+                    reshape_text(rec.get("date", "")),
+                    reshape_text(rec.get("amount", "") + " " + rec.get("currency", "")),
+                    reshape_text(rec.get("payee", "")),
+                    reshape_text(rec.get("reason", ""))
                 ]
 
                 wrapped_cells = []
@@ -2815,7 +2815,7 @@ class SarfApp:
             y_table_start = y_pos - 30
 
             # تحضير بيانات الجدول
-            headers = ["الحالة", "النوع", "الرقم", "المبلغ", "المستلم", "السبب"]
+            headers = [reshape_text("الحالة"), reshape_text("النوع"), reshape_text("الرقم"), reshape_text("المبلغ"), reshape_text("المستلم"), reshape_text("السبب")]
             table_data = [headers]
 
             for rec in today_records:
@@ -2825,23 +2825,23 @@ class SarfApp:
                 is_reconciled = rec.get("reconciled", False)
 
                 if is_deleted:
-                    status_text = "محذوف"
+                    status_text = reshape_text("محذوف")
                 elif is_edited:
-                    status_text = "معدل"
+                    status_text = reshape_text("معدل")
                 elif needs_recon and not is_reconciled:
-                    status_text = "بانتظار الترصيد"
+                    status_text = reshape_text("بانتظار الترصيد")
                 elif needs_recon and is_reconciled:
-                    status_text = "تم الترصيد"
+                    status_text = reshape_text("تم الترصيد")
                 else:
-                    status_text = "نشط"
+                    status_text = reshape_text("نشط")
 
                 row_data = [
                     status_text,
-                    rec.get("type", ""),
-                    rec.get("id", ""),
-                    rec.get("amount", "") + " " + rec.get("currency", ""),
-                    rec.get("payee", ""),
-                    rec.get("reason", "")
+                    reshape_text(rec.get("type", "")),
+                    reshape_text(rec.get("id", "")),
+                    reshape_text(rec.get("amount", "") + " " + rec.get("currency", "")),
+                    reshape_text(rec.get("payee", "")),
+                    reshape_text(rec.get("reason", ""))
                 ]
                 table_data.append(row_data)
 
